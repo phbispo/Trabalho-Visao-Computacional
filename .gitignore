@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Material de referência da aula
+aula12_referencia/
+
+# Arquivos de vídeo gerados
+*.mp4
+
+# Ambientes virtuais
+.venv/
+env/
+venv/
