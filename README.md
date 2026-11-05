@@ -139,19 +139,3 @@ Conforme orientação do edital, a aplicação foi projetada de forma modular pa
 
 ---
 
-## 🎥 Roteiro Sugerido para o Vídeo de Demonstração (Até 3 Minutos)
-
-1. **Abertura (0:00 - 0:25):**
-   - Apresentação dos integrantes e objetivo do projeto (Quebra-Cabeça com pegada e encaixe por pinça da mão usando MediaPipe Tasks).
-2. **Demonstração da Interação Básica (0:25 - 1:15):**
-   - Mostrar a mão aberta diante da câmera (cursor verde).
-   - Fazer o gesto de pinça sobre uma peça: destacar a borda dourada e a sombra projetada (elevação 3D).
-   - Arrastar a peça até o tabuleiro e soltar perto do slot correto, demonstrando o **Snap Magnético** e a explosão de partículas coloridas.
-3. **Comportamento em Falha / Perda de Detecção (1:15 - 1:45):**
-   - Segurar uma peça e retirar propositalmente a mão do campo de visão da câmera: demonstrar que a peça é solta suavemente no local, o aviso *"Mostre a mão para a câmera"* aparece e não há pulo/teletransporte quando a mão retorna.
-4. **Botões Virtuais e Gabarito (1:45 - 2:20):**
-   - Acionar o botão *"Dica [H]"* (por pinça ou tempo parado sobre ele) mostrando o gabarito translúcido.
-   - Encaixar as peças restantes da Fase 1 e mostrar a transição para a Fase 2 (Floresta Mágica).
-5. **Encerramento e Código (2:20 - 3:00):**
-   - Mostrar rapidamente a organização dos arquivos (`maos.py`, `logica.py`, `visual.py`, `testes.py`) e a execução dos 10 testes com `python testes.py`.
-
