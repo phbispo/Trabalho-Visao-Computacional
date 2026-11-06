@@ -127,7 +127,11 @@ def main():
             desenhar_particulas(quadro, jogo.particulas, t)
 
             # Botões virtuais na tela
-            desenhar_botoes(quadro, jogo.botoes, texto)
+            botoes_visiveis = [
+                btn for btn in jogo.botoes
+                if btn.id != "proxima" or jogo.estado == "fase_concluida"
+            ]
+            desenhar_botoes(quadro, botoes_visiveis, texto)
 
             # Cursor da mão no ponto de pinça
             desenhar_cursor_mao(

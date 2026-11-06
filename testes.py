@@ -238,6 +238,50 @@ def test_botoes_virtuais_clique_e_dwell():
     assert btn.atualizar((120, 120), acabou_de_fechar=False, dt=0.3)  # ultrapassa 0.5s -> dispara
 
 
+def test_dwell_dispara_uma_vez_ate_sair_do_botao():
+    btn = BotaoVirtual("teste", "Teste", 100, 100, 80, 40, tempo_dwell_necessario=0.5)
+    assert btn.atualizar((120, 120), False, 0.6)
+    assert not btn.atualizar((120, 120), False, 2.0)
+    assert not btn.atualizar(None, False, 0.1)
+    assert btn.atualizar((120, 120), False, 0.6)
+
+
+def test_perda_breve_cancela_botao_sem_soltar_peca():
+    jogo = JogoQuebraCabeca(W, H, seed=42)
+    cursor = CursorMao()
+    btn = jogo.botoes[0]
+    cursor.atualizar((btn.x + 10, btn.y + 10), 1.0, 0.0)
+    jogo.atualizar(cursor, 0.0, 0.9)
+    cursor.atualizar(None, None, 0.1)
+    jogo.atualizar(cursor, 0.1, 0.2)
+    assert cursor.ativa
+    assert not jogo.mostrar_dica
+    assert btn.dwell_atual == 0.0
+
+
+def test_arraste_nao_aciona_botao():
+    jogo = JogoQuebraCabeca(W, H, seed=42)
+    cursor = CursorMao(debounce_quadros=1)
+    peca = jogo.pecas[-1]
+    cursor.atualizar((peca.x, peca.y), 0.1, 0.0)
+    jogo.atualizar(cursor, 0.0, 0.1)
+    btn = jogo.botoes[0]
+    cursor.atualizar((btn.x + 10, btn.y + 10), 0.1, 0.1)
+    jogo.atualizar(cursor, 0.1, 2.0)
+    assert jogo.peca_ativa is peca
+    assert not jogo.mostrar_dica
+
+
+def test_cronometro_para_na_conclusao():
+    jogo = JogoQuebraCabeca(W, H, seed=42)
+    for peca in jogo.pecas:
+        peca.x, peca.y = peca.slot_x, peca.slot_y
+        jogo._tentar_encaixar(peca, 1.0)
+    jogo.atualizar(CursorMao(), 2.0, 1.0)
+    assert jogo.tempo_fase == 0.0
+    assert jogo.tempo_total == 0.0
+
+
 if __name__ == "__main__":
     funcoes_teste = [f for n, f in sorted(globals().items()) if n.startswith("test_")]
     passaram = 0

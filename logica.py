@@ -109,6 +109,7 @@ class CursorMao:
         self._ultimo_t_visto: float = -math.inf
         self.razao_atual: float = 1.0
         self.ativa: bool = False
+        self.detectada: bool = False
 
     def atualizar(self, ponto_bruto: Optional[Tuple[float, float]],
                   razao: Optional[float], t: float) -> Tuple[bool, bool]:
@@ -119,6 +120,7 @@ class CursorMao:
         """
         acabou_de_fechar = False
         acabou_de_abrir = False
+        self.detectada = ponto_bruto is not None and razao is not None
 
         if ponto_bruto is None or razao is None:
             if t - self._ultimo_t_visto > self.tolerancia_perda_s:
@@ -178,6 +180,7 @@ class BotaoVirtual:
     tempo_dwell_necessario: float = 1.0
     dwell_atual: float = 0.0
     hover: bool = False
+    _dwell_disparado: bool = False
 
     def contem_ponto(self, px: float, py: float) -> bool:
         return (self.x <= px <= self.x + self.w and
@@ -188,12 +191,14 @@ class BotaoVirtual:
         """Retorna True se o botão foi acionado por pinça ou por dwell."""
         if cursor_pos is None:
             self.hover = False
+            self._dwell_disparado = False
             self.dwell_atual = 0.0
             return False
 
         self.hover = self.contem_ponto(*cursor_pos)
         if not self.hover:
-            self.dwell_atual = max(0.0, self.dwell_atual - 2.0 * dt)
+            self._dwell_disparado = False
+            self.dwell_atual = 0.0
             return False
 
         # Acionamento imediato por gesto de pinça
@@ -201,9 +206,13 @@ class BotaoVirtual:
             self.dwell_atual = 0.0
             return True
 
+        if self._dwell_disparado:
+            return False
+
         # Acionamento gradual por permanência (dwell)
         self.dwell_atual += dt
         if self.dwell_atual >= self.tempo_dwell_necessario:
+            self._dwell_disparado = True
             self.dwell_atual = 0.0
             return True
 
@@ -279,7 +288,7 @@ class JogoQuebraCabeca:
             BotaoVirtual("dica", "Dica [H]", self.w * 0.50 - bw / 2, y_topo, bw, bh),
             BotaoVirtual("embaralhar", "Embaralhar", self.w * 0.06, y_topo, bw, bh),
             BotaoVirtual("reiniciar", "Reiniciar", self.w * 0.06 + bw + 15, y_topo, bw, bh),
-            BotaoVirtual("proxima", "Próxima Fase >>", self.tabuleiro_cx - 90, self.h * 0.88, 180, 46),
+            BotaoVirtual("proxima", "Próxima Fase >>", self.w - 195, y_topo, 180, bh),
         ]
 
     @property
@@ -375,8 +384,9 @@ class JogoQuebraCabeca:
 
     def atualizar(self, cursor: CursorMao, t: float, dt: float):
         """Avança o ciclo principal de lógica: pinça, arrasto, encaixe, animações e botões."""
-        self.tempo_fase += dt
-        self.tempo_total += dt
+        if self.estado == "jogando":
+            self.tempo_fase += dt
+            self.tempo_total += dt
 
         # 1. Animações de peças voltando suavemente à bandeja
         for p in self.pecas:
@@ -397,15 +407,20 @@ class JogoQuebraCabeca:
                 self.particulas.remove(part)
 
         # 3. Interação com Botões Virtuais
-        if cursor.pos is not None:
+        pos_botao = cursor.pos if cursor.detectada and self.peca_ativa is None else None
+        if pos_botao is None:
+            for btn in self.botoes:
+                btn.atualizar(None, False, dt)
+        else:
             acabou_de_fechar = (cursor.pinçando and self.peca_ativa is None and
                                 getattr(cursor, "_quadros_fechados", 0) == cursor.debounce_quadros)
             for btn in self.botoes:
                 # O botão de próxima fase só funciona se a fase foi concluída
                 if btn.id == "proxima" and self.estado != "fase_concluida":
                     continue
-                if btn.atualizar(cursor.pos, acabou_de_fechar, dt):
+                if btn.atualizar(pos_botao, acabou_de_fechar, dt):
                     self._executar_acao_botao(btn.id)
+                    return
 
         # 4. Comportamento se a mão for perdida durante o arrasto
         if not cursor.ativa:

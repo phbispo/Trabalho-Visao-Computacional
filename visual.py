@@ -161,6 +161,12 @@ def desenhar_tabuleiro(quadro: np.ndarray, jogo: JogoQuebraCabeca, gerenciador: 
         sx1 = int(round(s.x + s.largura / 2.0))
         sy1 = int(round(s.y + s.altura / 2.0))
         cv2.rectangle(quadro, (sx0, sy0), (sx1, sy1), (80, 100, 120), 1, cv2.LINE_AA)
+        peca = jogo.peca_ativa
+        if (peca is not None and peca.linha == s.linha and peca.coluna == s.coluna
+                and peca.distancia_ao_slot() <= jogo.raio_snap):
+            cv2.rectangle(quadro, (sx0 + 3, sy0 + 3), (sx1 - 3, sy1 - 3),
+                          (80, 255, 120), 4, cv2.LINE_AA)
+
 
     # Moldura exterior com brilho
     desenhar_retangulo_arredondado(quadro, (x0 - 8, y0 - 8), (x0 + tam + 8, y0 + tam + 8),
